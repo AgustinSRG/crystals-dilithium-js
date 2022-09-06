@@ -24,6 +24,19 @@ export class PolynomiumVector {
         return pv;
     }
 
+    public static expandA(rho: Uint8Array, k: number, l: number): PolynomiumVector[] {
+        const A: PolynomiumVector[] = [];
+        for (let i = 0; i < k; i++) {
+            const pv = new PolynomiumVector(l);
+            for (let j = 0; j < l; j++) {
+                pv.polynomiums[j] = Polynomium.genUniformRandom(rho, (i << 8) + j);
+            }
+            A.push(pv);
+        }
+
+        return A;
+    }
+
     constructor(size: number) {
         this.polynomiums = [];
         for (let i = 0; i < size; i++) {
