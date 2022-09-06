@@ -50,6 +50,7 @@
   },
   "license": "MIT",
   "dependencies": {
+    "randombytes": "2.1.0",
     "sha3": "2.1.4"
   }
 }

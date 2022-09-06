@@ -8,7 +8,10 @@ module.exports = {
         library: "DilithiumAlgorithm",
     },
     resolve: {
-        extensions: [".webpack.js", ".web.js", ".ts", ".js"]
+        extensions: [".webpack.js", ".web.js", ".ts", ".js"],
+        fallback: {
+            "crypto": false,
+        },
     },
     module: {
         rules: [{ test: /\.ts$/, loader: "ts-loader" }]

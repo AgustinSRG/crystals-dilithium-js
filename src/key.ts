@@ -4,9 +4,10 @@
 
 import { CRHBYTES, POLYT0_PACKEDBYTES, POLYT1_PACKEDBYTES, SEEDBYTES } from "./constants";
 import { DilithiumLevel, DilithiumParameterSpec } from "./param";
+import randomBytes from "randombytes";
 import { Polynomium } from "./poly";
 import { PolynomiumVector } from "./poly-vec";
-import { getPolyEtaPackedBytes, packPubKey } from "./util";
+import { crh, getPolyEtaPackedBytes, getSHAKE256Digest, packPrvKey, packPubKey } from "./util";
 
 /**
  * Private key parameters
@@ -236,6 +237,68 @@ export class DilithiumKeyPair {
      */
     public static fromKeys(secret: DilithiumPrivateKey, pub: DilithiumPublicKey): DilithiumKeyPair {
         return new DilithiumKeyPair(secret, pub);
+    }
+
+    /**
+     * Generates a random keypair
+     * @param level The algorithm level
+     * @param seed The seed for the generation of the key pair (if not prodiced, a random seed is generated)
+     */
+    public static generate(level: DilithiumLevel, seed?: Uint8Array) {
+        const spec = level.spec.rawParams;
+
+        let zeta: Uint8Array;
+        if (seed) {
+            zeta = seed;
+        } else {
+            zeta = new Uint8Array(randomBytes(32));
+        }
+
+        const o = getSHAKE256Digest(3 * 32, zeta);
+        const rho = o.slice(0, 32);
+        const sigma = o.slice(32, 64);
+        const K = o.slice(64, 96);
+
+        const s1 = PolynomiumVector.randomVec(sigma, spec.eta, spec.l, 0);
+        const s2 = PolynomiumVector.randomVec(sigma, spec.eta, spec.k, spec.l);
+
+        const A = PolynomiumVector.expandA(rho, spec.k, spec.l);
+
+        const s1Hat = s1.ntt();
+        let t1 = s1Hat.mulMatrixPointwiseMontgomery(A);
+        t1.reduce();
+        t1.invnttTomont();
+
+        t1 = t1.add(s2);
+        t1.caddq();
+
+        const res = t1.powerRound();
+        const pubbytes = packPubKey(rho, res[1]);
+
+        const tr = crh(pubbytes);
+
+        const prvbytes = packPrvKey(spec.eta, rho, tr, K, res[0], s1, s2);
+		
+        const s2Hat = s2.ntt();
+        const t0Hat = res[0].ntt();
+        
+        const privateKey = new DilithiumPrivateKey(spec, prvbytes, {
+            rho,
+            K,
+            tr,
+            s1,
+            s2,
+            t0: res[0],
+            A,
+            s1Hat,
+            s2Hat,
+            t0Hat,
+        });
+
+        const publicKey = new DilithiumPublicKey(spec, pubbytes, rho, res[1], A);
+
+
+        return new DilithiumKeyPair(privateKey, publicKey);
     }
 
     constructor(secret: DilithiumPrivateKey, pub?: DilithiumPublicKey) {
