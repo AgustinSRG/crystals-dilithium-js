@@ -73,14 +73,14 @@ export function getPrivateKeyByteLength(spec: DilithiumParameterSpec): number {
     let pkbytes: number;
 
     switch (spec.eta) {
-        case 2:
-            pkbytes = 96;
-            break;
-        case 4:
-            pkbytes = 128;
-            break;
-        default:
-            throw new Error("Illegal eta: " + spec.eta);
+    case 2:
+        pkbytes = 96;
+        break;
+    case 4:
+        pkbytes = 128;
+        break;
+    default:
+        throw new Error("Illegal eta: " + spec.eta);
     }
 
     return (

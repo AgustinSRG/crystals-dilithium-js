@@ -2,3 +2,5 @@
 
 "use strict";
 
+export * from "./param";
+export * from "./dilithium";

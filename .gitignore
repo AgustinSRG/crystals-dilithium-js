@@ -17,5 +17,7 @@ node_modules
 
 temp
 
+test.js
+
 npm-debug.log
 core
