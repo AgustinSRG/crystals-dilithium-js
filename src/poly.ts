@@ -149,6 +149,154 @@ export class Polynomium {
         return pre;
     }
 
+    public static etaunpack(eta: number, bytes: Uint8Array, off: number): Polynomium {
+        const p = new Polynomium(N);
+        if (eta === 2) {
+            for (let i = 0; i < N / 8; i++) {
+                p.coef[8 * i + 0] = ((bytes[off + 3 * i + 0] & 0xFF) >> 0) & 7;
+                p.coef[8 * i + 1] = ((bytes[off + 3 * i + 0] & 0xFF) >> 3) & 7;
+                p.coef[8 * i + 2] = (((bytes[off + 3 * i + 0] & 0xFF) >> 6) | ((bytes[off + 3 * i + 1] & 0xFF) << 2)) & 7;
+                p.coef[8 * i + 3] = ((bytes[off + 3 * i + 1] & 0xFF) >> 1) & 7;
+                p.coef[8 * i + 4] = ((bytes[off + 3 * i + 1] & 0xFF) >> 4) & 7;
+                p.coef[8 * i + 5] = (((bytes[off + 3 * i + 1] & 0xFF) >> 7) | ((bytes[off + 3 * i + 2] & 0xFF) << 1)) & 7;
+                p.coef[8 * i + 6] = ((bytes[off + 3 * i + 2] & 0xFF) >> 2) & 7;
+                p.coef[8 * i + 7] = ((bytes[off + 3 * i + 2] & 0xFF) >> 5) & 7;
+
+                p.coef[8 * i + 0] = eta - p.coef[8 * i + 0];
+                p.coef[8 * i + 1] = eta - p.coef[8 * i + 1];
+                p.coef[8 * i + 2] = eta - p.coef[8 * i + 2];
+                p.coef[8 * i + 3] = eta - p.coef[8 * i + 3];
+                p.coef[8 * i + 4] = eta - p.coef[8 * i + 4];
+                p.coef[8 * i + 5] = eta - p.coef[8 * i + 5];
+                p.coef[8 * i + 6] = eta - p.coef[8 * i + 6];
+                p.coef[8 * i + 7] = eta - p.coef[8 * i + 7];
+            }
+
+        } else if (eta === 4) {
+            for (let i = 0; i < N / 2; i++) {
+                p.coef[2 * i + 0] = (bytes[off + i] & 0xFF) & 0x0F;
+                p.coef[2 * i + 1] = (bytes[off + i] & 0xFF) >> 4;
+                p.coef[2 * i + 0] = eta - p.coef[2 * i + 0];
+                p.coef[2 * i + 1] = eta - p.coef[2 * i + 1];
+            }
+        } else {
+            throw new Error("Unknown eta: " + eta);
+        }
+        return p;
+    }
+
+    public static t0unpack(bytes: Uint8Array, off: number): Polynomium {
+        const p = new Polynomium(N);
+        for (let i = 0; i < N / 8; i++) {
+            p.coef[8 * i + 0] = (bytes[off + 13 * i + 0] & 0xFF);
+            p.coef[8 * i + 0] |= (bytes[off + 13 * i + 1] & 0xFF) << 8;
+            p.coef[8 * i + 0] &= 0x1FFF;
+
+            p.coef[8 * i + 1] = (bytes[off + 13 * i + 1] & 0xFF) >> 5;
+            p.coef[8 * i + 1] |= (bytes[off + 13 * i + 2] & 0xFF) << 3;
+            p.coef[8 * i + 1] |= (bytes[off + 13 * i + 3] & 0xFF) << 11;
+            p.coef[8 * i + 1] &= 0x1FFF;
+
+            p.coef[8 * i + 2] = (bytes[off + 13 * i + 3] & 0xFF) >> 2;
+            p.coef[8 * i + 2] |= (bytes[off + 13 * i + 4] & 0xFF) << 6;
+            p.coef[8 * i + 2] &= 0x1FFF;
+
+            p.coef[8 * i + 3] = (bytes[off + 13 * i + 4] & 0xFF) >> 7;
+            p.coef[8 * i + 3] |= (bytes[off + 13 * i + 5] & 0xFF) << 1;
+            p.coef[8 * i + 3] |= (bytes[off + 13 * i + 6] & 0xFF) << 9;
+            p.coef[8 * i + 3] &= 0x1FFF;
+
+            p.coef[8 * i + 4] = (bytes[off + 13 * i + 6] & 0xFF) >> 4;
+            p.coef[8 * i + 4] |= (bytes[off + 13 * i + 7] & 0xFF) << 4;
+            p.coef[8 * i + 4] |= (bytes[off + 13 * i + 8] & 0xFF) << 12;
+            p.coef[8 * i + 4] &= 0x1FFF;
+
+            p.coef[8 * i + 5] = (bytes[off + 13 * i + 8] & 0xFF) >> 1;
+            p.coef[8 * i + 5] |= (bytes[off + 13 * i + 9] & 0xFF) << 7;
+            p.coef[8 * i + 5] &= 0x1FFF;
+
+            p.coef[8 * i + 6] = (bytes[off + 13 * i + 9] & 0xFF) >> 6;
+            p.coef[8 * i + 6] |= (bytes[off + 13 * i + 10] & 0xFF) << 2;
+            p.coef[8 * i + 6] |= (bytes[off + 13 * i + 11] & 0xFF) << 10;
+            p.coef[8 * i + 6] &= 0x1FFF;
+
+            p.coef[8 * i + 7] = (bytes[off + 13 * i + 11] & 0xFF) >> 3;
+            p.coef[8 * i + 7] |= (bytes[off + 13 * i + 12] & 0xFF) << 5;
+            p.coef[8 * i + 7] &= 0x1FFF;
+
+            p.coef[8 * i + 0] = (1 << (D - 1)) - p.coef[8 * i + 0];
+            p.coef[8 * i + 1] = (1 << (D - 1)) - p.coef[8 * i + 1];
+            p.coef[8 * i + 2] = (1 << (D - 1)) - p.coef[8 * i + 2];
+            p.coef[8 * i + 3] = (1 << (D - 1)) - p.coef[8 * i + 3];
+            p.coef[8 * i + 4] = (1 << (D - 1)) - p.coef[8 * i + 4];
+            p.coef[8 * i + 5] = (1 << (D - 1)) - p.coef[8 * i + 5];
+            p.coef[8 * i + 6] = (1 << (D - 1)) - p.coef[8 * i + 6];
+            p.coef[8 * i + 7] = (1 << (D - 1)) - p.coef[8 * i + 7];
+        }
+        return p;
+    }
+
+    public static t1unpack(bytes: Uint8Array, off: number): Polynomium {
+        const p = new Polynomium(N);
+        for (let i = 0; i < N / 4; i++) {
+            p.coef[4 * i + 0] = (((bytes[off + 5 * i + 0] & 0xFF) >> 0) | ((bytes[off + 5 * i + 1] & 0xFF) << 8)) & 0x3FF;
+            p.coef[4 * i + 1] = (((bytes[off + 5 * i + 1] & 0xFF) >> 2) | ((bytes[off + 5 * i + 2] & 0xFF) << 6)) & 0x3FF;
+            p.coef[4 * i + 2] = (((bytes[off + 5 * i + 2] & 0xFF) >> 4) | ((bytes[off + 5 * i + 3] & 0xFF) << 4)) & 0x3FF;
+            p.coef[4 * i + 3] = (((bytes[off + 5 * i + 3] & 0xFF) >> 6) | ((bytes[off + 5 * i + 4] & 0xFF) << 2)) & 0x3FF;
+        }
+        return p;
+    }
+
+    public static zunpack(gamma1: number, sig: Uint8Array, off: number) {
+        const pre = new Polynomium(N);
+	
+        if (gamma1 === (1 << 17)) {
+            for (let i = 0; i < N / 4; i++) {
+                pre.coef[4 * i + 0] = sig[off + 9 * i + 0] & 0xFF;
+                pre.coef[4 * i + 0] |= (sig[off + 9 * i + 1] & 0xFF) << 8;
+                pre.coef[4 * i + 0] |= (sig[off + 9 * i + 2] & 0xFF) << 16;
+                pre.coef[4 * i + 0] &= 0x3FFFF;
+	
+                pre.coef[4 * i + 1] = (sig[off + 9 * i + 2] & 0xFF) >> 2;
+                pre.coef[4 * i + 1] |= (sig[off + 9 * i + 3] & 0xFF) << 6;
+                pre.coef[4 * i + 1] |= (sig[off + 9 * i + 4] & 0xFF) << 14;
+                pre.coef[4 * i + 1] &= 0x3FFFF;
+	
+                pre.coef[4 * i + 2] = (sig[off + 9 * i + 4] & 0xFF) >> 4;
+                pre.coef[4 * i + 2] |= (sig[off + 9 * i + 5] & 0xFF) << 4;
+                pre.coef[4 * i + 2] |= (sig[off + 9 * i + 6] & 0xFF) << 12;
+                pre.coef[4 * i + 2] &= 0x3FFFF;
+	
+                pre.coef[4 * i + 3] = (sig[off + 9 * i + 6] & 0xFF) >> 6;
+                pre.coef[4 * i + 3] |= (sig[off + 9 * i + 7] & 0xFF) << 2;
+                pre.coef[4 * i + 3] |= (sig[off + 9 * i + 8] & 0xFF) << 10;
+                pre.coef[4 * i + 3] &= 0x3FFFF;
+	
+                pre.coef[4 * i + 0] = gamma1 - pre.coef[4 * i + 0];
+                pre.coef[4 * i + 1] = gamma1 - pre.coef[4 * i + 1];
+                pre.coef[4 * i + 2] = gamma1 - pre.coef[4 * i + 2];
+                pre.coef[4 * i + 3] = gamma1 - pre.coef[4 * i + 3];
+            }
+        } else if (gamma1 === (1 << 19)) {
+            for (let i = 0; i < N / 2; ++i) {
+                pre.coef[2 * i + 0] = (sig[off + 5 * i + 0] & 0xFF);
+                pre.coef[2 * i + 0] |= (sig[off + 5 * i + 1] & 0xFF) << 8;
+                pre.coef[2 * i + 0] |= (sig[off + 5 * i + 2] & 0xFF) << 16;
+                pre.coef[2 * i + 0] &= 0xFFFFF;
+	
+                pre.coef[2 * i + 1] = (sig[off + 5 * i + 2] & 0xFF) >> 4;
+                pre.coef[2 * i + 1] |= (sig[off + 5 * i + 3] & 0xFF) << 4;
+                pre.coef[2 * i + 1] |= (sig[off + 5 * i + 4] & 0xFF) << 12;
+                pre.coef[2 * i + 0] &= 0xFFFFF;
+	
+                pre.coef[2 * i + 0] = gamma1 - pre.coef[2 * i + 0];
+                pre.coef[2 * i + 1] = gamma1 - pre.coef[2 * i + 1];
+            }
+        }
+	
+        return pre;
+    }
+
     private static rej_eta(eta: number, coef: number[], off: number, len: number, buf: Buffer, buflen: number): number {
         let ctr = 0;
         let pos = 0;
