@@ -429,4 +429,23 @@ export class DilithiumKeyPair {
     public getPublicKey(): DilithiumPublicKey {
         return this.pub;
     }
+
+    /**
+     * Signs a message
+     * @param message The message
+     * @returns The signature
+     */
+    public sign(message: Uint8Array): DilithiumSignature {
+        return this.secret.sign(message);
+    }
+
+    /**
+     * Verifies a signature
+     * @param message The message
+     * @param sig The signature
+     * @returns True only if the signature is valid
+     */
+    public verifySignature(message: Uint8Array, sig: DilithiumSignature): boolean {
+        return this.pub.verifySignature(message, sig);
+    }
 }
