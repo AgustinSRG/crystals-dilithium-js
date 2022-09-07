@@ -1,4 +1,4 @@
-# Async tools
+# CRYSTALS-Dilithium (Javascript implementation)
 
 [![npm version](https://badge.fury.io/js/%40asanrom%2Fdilithium.svg)](https://badge.fury.io/js/%40asanrom%2Fdilithium)
 
@@ -20,7 +20,7 @@ If you are using it in the browser, download the minified file from the [Release
 <script type="text/javascript" src="/path/to/dilithium.js"></script>
 ```
 
-The browser library exports all artifacts to the window global: `Dilithium`
+The browser library exports all artifacts to the window global: `DilithiumAlgorithm`
 
 ## Usage
 
