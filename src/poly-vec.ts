@@ -179,4 +179,7 @@ export class PolynomiumVector {
         return false;
     }
 
+    public toString(): string {
+        return "{" + this.polynomiums.map(a => a.toString()).join(", ") + "}";
+    }
 }

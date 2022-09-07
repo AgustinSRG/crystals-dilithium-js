@@ -39,7 +39,7 @@ export class DilithiumLevel {
      * @param level The security level 
      * @returns The specification and parameters for that level
      */
-    public static get(level: DilithiumLevelNumber): DilithiumLevelSpec {
+    public static get(level: DilithiumLevelNumber): DilithiumLevel {
         let p: DilithiumParameterSpec;
         switch (level) {
         case 2:
@@ -55,13 +55,13 @@ export class DilithiumLevel {
             throw new Error("Invalid security level: " + level);
         }
 
-        return {
+        return new DilithiumLevel({
             level: level,
             rawParams: p,
             publicKeyLength: getPublicKeyByteLength(p),
             privateKeyLength: getPrivateKeyByteLength(p),
             signatureLength: getSignatureByteLength(p),
-        };
+        });
     }
 
     public spec: DilithiumLevelSpec;

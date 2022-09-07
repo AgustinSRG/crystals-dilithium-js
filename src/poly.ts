@@ -3,6 +3,7 @@
 "use strict"
 
 import { SHAKE } from 'sha3';
+import Long from "long";
 import { D, N, POLY_UNIFORM_GAMMA1_NBLOCKS, POLY_UNIFORM_NBLOCKS, Q, QINV, SEEDBYTES, SHAKE256_RATE, STREAM128_BLOCKBYTES, STREAM256_BLOCKBYTES, zetas } from './constants';
 
 export class Polynomium {
@@ -396,11 +397,11 @@ export class Polynomium {
         return ctr;
     }
 
-    private static montgomery_reduce(a: bigint): number {
-        let t: bigint;
-        t = (a * BigInt(QINV));
-        t = (((a - t * BigInt(Q)) >> BigInt(32)) & BigInt(0xFFFFFFFF));
-        return Number(t);
+    private static montgomery_reduce(a: Long): number {
+        let t: number;
+        t = a.mul(QINV).toInt();      
+        t = a.sub((Long.fromNumber(t)).mul(Q)).shiftRight(32).and(0xFFFFFFFF).toInt();
+        return t;
     }
 
     public coef: number[];
@@ -446,7 +447,7 @@ export class Polynomium {
             for (let start = 0; start < N; start = j + len) {
                 const zeta = zetas[++k];
                 for (j = start; j < start + len; ++j) {
-                    const t = Polynomium.montgomery_reduce(BigInt(zeta) * BigInt(ret.coef[j + len]));
+                    const t = Polynomium.montgomery_reduce((Long.fromNumber(zeta)).mul(ret.coef[j + len]));
                     ret.coef[j + len] = (ret.coef[j] - t) | 0;
                     ret.coef[j] = (ret.coef[j] + t) | 0;
                 }
@@ -459,7 +460,7 @@ export class Polynomium {
     public pointwiseMontgomery(other: Polynomium): Polynomium {
         const c = new Polynomium(this.coef.length);
         for (let i = 0; i < this.coef.length; i++) {
-            c.coef[i] = Polynomium.montgomery_reduce(BigInt(this.coef[i]) * BigInt(other.coef[i]));
+            c.coef[i] = Polynomium.montgomery_reduce((Long.fromNumber(this.coef[i])).mul(other.coef[i]));
         }
         return c;
     }
@@ -488,13 +489,13 @@ export class Polynomium {
                     const t = this.coef[j];
                     this.coef[j] = (t + this.coef[j + len]) | 0;
                     this.coef[j + len] = (t - this.coef[j + len]) | 0;
-                    this.coef[j + len] = Polynomium.montgomery_reduce(BigInt(zeta) * BigInt(this.coef[j + len]));
+                    this.coef[j + len] = Polynomium.montgomery_reduce((Long.fromNumber(zeta)).mul(this.coef[j + len]));
                 }
             }
         }
 
         for (j = 0; j < N; ++j) {
-            this.coef[j] = Polynomium.montgomery_reduce(BigInt(f) * BigInt(this.coef[j]));
+            this.coef[j] = Polynomium.montgomery_reduce((Long.fromNumber(f)).mul(this.coef[j]));
         }
     }
 
@@ -560,7 +561,7 @@ export class Polynomium {
     }
 
     public t0pack(buf: Uint8Array, off: number) {
-        const t = new Int32Array[8];
+        const t = new Uint8Array(8);
 
         for (let i = 0; i < N / 8; i++) {
             t[0] = (1 << (D - 1)) - this.coef[8 * i + 0];
@@ -645,8 +646,9 @@ export class Polynomium {
     public chknorm(B: number): boolean {
         let t: number;
 
-        if (B > (Q - 1) / 8)
+        if (B > Math.floor((Q - 1) / 8)) {
             return true;
+        }
 
         /*
          * It is ok to leak which coefficient violates the bound since the probability

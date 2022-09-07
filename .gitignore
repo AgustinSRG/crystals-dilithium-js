@@ -19,5 +19,7 @@ temp
 
 test.js
 
+*.log
+
 npm-debug.log
 core
