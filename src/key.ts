@@ -8,6 +8,7 @@ import randomBytes from "randombytes";
 import { Polynomium } from "./poly";
 import { PolynomiumVector } from "./poly-vec";
 import { crh, getPolyEtaPackedBytes, getSHAKE256Digest, packPrvKey, packPubKey } from "./util";
+import { DilithiumSignature } from "./signature";
 
 /**
  * Private key parameters
@@ -204,6 +205,15 @@ export class DilithiumPrivateKey implements DilithiumPrivateKeyParams {
     public toBase64(): string {
         return Buffer.from(this.bytes).toString("base64");
     }
+
+    /**
+     * Signs a message
+     * @param message The message
+     * @returns The signature
+     */
+    public sign(message: Uint8Array): DilithiumSignature {
+        return DilithiumSignature.generate(message, this);
+    }
 }
 
 /**
@@ -274,6 +284,13 @@ export class DilithiumPublicKey {
     }
 
     /**
+     * @returns The public key as a byte array 
+     */
+    public getBytes(): Uint8Array {
+        return this.bytes;
+    }
+
+    /**
      * @returns The public key as a hex string
      */
     public toHex(): string {
@@ -285,6 +302,16 @@ export class DilithiumPublicKey {
      */
     public toBase64(): string {
         return Buffer.from(this.bytes).toString("base64");
+    }
+
+    /**
+     * Verifies a signature
+     * @param message The message
+     * @param sig The signature
+     * @returns True only if the signature is valid
+     */
+    public verifySignature(message: Uint8Array, sig: DilithiumSignature): boolean {
+        return sig.verify(message, this);
     }
 }
 

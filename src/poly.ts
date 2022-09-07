@@ -3,7 +3,7 @@
 "use strict"
 
 import { SHAKE } from 'sha3';
-import { D, N, POLY_UNIFORM_GAMMA1_NBLOCKS, POLY_UNIFORM_NBLOCKS, Q, QINV, STREAM128_BLOCKBYTES, STREAM256_BLOCKBYTES, zetas } from './constants';
+import { D, N, POLY_UNIFORM_GAMMA1_NBLOCKS, POLY_UNIFORM_NBLOCKS, Q, QINV, SEEDBYTES, SHAKE256_RATE, STREAM128_BLOCKBYTES, STREAM256_BLOCKBYTES, zetas } from './constants';
 
 export class Polynomium {
     public static genRandom(rho: Uint8Array, eta: number, nonce: number) {
@@ -144,6 +144,59 @@ export class Polynomium {
 
         } else {
             throw new Error("Invalid gamma1: " + gamma1);
+        }
+
+        return pre;
+    }
+
+    public static generateChallenge(tau: number, seed: Uint8Array): Polynomium {
+        const pre = new Polynomium(N);
+
+        const s = new SHAKE(256);
+        s.update(Buffer.from(seed.slice(0, SEEDBYTES)));
+
+        const buf = Buffer.alloc(SHAKE256_RATE);
+        s.digest({ buffer: buf, format: "binary" });
+
+        const signs = new Uint8Array(8);
+
+        for (let i = 0; i < 8; i++) {
+            signs[7 - i] = (buf[i] & 0xFF);
+        }
+
+        let pos = 8;
+        let signsByte = 7;
+        let signsBit = 7;
+
+        let b: number;
+
+        for (let i = N - tau; i < N; ++i) {
+            if (pos >= SHAKE256_RATE) {
+                s.digest({ buffer: buf, format: "binary" });
+                pos = 0;
+            }
+
+            b = (buf[pos++] & 0xFF);
+
+            while (b > i) {
+                if (pos >= SHAKE256_RATE) {
+                    s.digest({ buffer: buf, format: "binary" });
+                    pos = 0;
+                }
+    
+                b = (buf[pos++] & 0xFF);
+            }
+
+            const bit = (signs[signsByte] >> (7 - signsBit)) & 1;
+
+            pre.coef[i] = pre.coef[b];
+            pre.coef[b] = (1 - 2 * bit);
+
+            signsBit--;
+            if (signsBit < 0) {
+                signsBit = 7;
+                signsByte--;
+            }
         }
 
         return pre;
