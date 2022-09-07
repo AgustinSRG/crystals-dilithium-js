@@ -24,7 +24,27 @@ The browser library exports all artifacts to the window global: `DilithiumAlgori
 
 ## Usage
 
-TODO
+```ts
+import { DilithiumKeyPair, DilithiumLevel, DilithiumLevelNumber, DilithiumSignature } from "@asanrom/dilithium";
+
+const level = DilithiumLevel.get(2); // Get the security level config (2, 3, or 5)
+
+// Generate a key pair
+const keyPair = DilithiumKeyPair.generate(level);
+
+// Get the private key
+const privateKey = keyPair.getPrivateKey();
+
+// Sign a message
+const message = new Uint8Array(Buffer.from("Joy!", "utf8"));
+const signature = privateKey.sign(message);
+
+// Get the public key
+const publicKey = keyPair.getPublicKey();
+
+// Validate signature
+const valid = publicKey.verifySignature(message, signature);
+```
 
 ## Documentation
 

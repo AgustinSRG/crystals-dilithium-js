@@ -30,7 +30,6 @@ for (let level of levels) {
         let signature: DilithiumSignature;
 
         it('Should be able to sign a message without errors', () => {
-
             signature = keyPair.sign(message);
         });
 
