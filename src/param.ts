@@ -9,7 +9,6 @@ import { getPrivateKeyByteLength, getPublicKeyByteLength, getSignatureByteLength
  * Dilithium algorithm params
  */
 export interface DilithiumParameterSpec {
-    name: string;
     k: number;
     l: number;
     gamma1: number;
@@ -23,21 +22,21 @@ export interface DilithiumParameterSpec {
 }
 
 /**
- * Dilithium algorithm level (numeric)
+ * Dilithium security level (numeric)
  */
 export type DilithiumLevelNumber = 2 | 3 | 5;
 
 /**
- * Dilithium algorithm level
+ * Dilithium security level
  */
 export class DilithiumLevel {
     /**
-     * Get the definition for a level of Dilithium
+     * Get the definition for a security level of Dilithium
      * Level can be:
      *  - LEVEL 2
      *  - LEVEL 3
      *  - LEVEL 5
-     * @param level The level 
+     * @param level The security level 
      * @returns The specification and parameters for that level
      */
     public static get(level: DilithiumLevelNumber): DilithiumLevelSpec {
@@ -53,7 +52,7 @@ export class DilithiumLevel {
             p = DILITHIUM_LEVEL5_P;
             break;
         default:
-            throw new Error("Invalid level: " + level);
+            throw new Error("Invalid security level: " + level);
         }
 
         return {
@@ -103,7 +102,6 @@ export interface DilithiumLevelSpec {
 }
 
 export const DILITHIUM_LEVEL2_P: DilithiumParameterSpec = {
-    name: "Dilithium Level 2",
     k: 4,
     l: 4,
     gamma1: 1 << 17,
@@ -117,7 +115,6 @@ export const DILITHIUM_LEVEL2_P: DilithiumParameterSpec = {
 };
 
 export const DILITHIUM_LEVEL3_P: DilithiumParameterSpec = {
-    name: "Dilithium Level 3",
     k: 6,
     l: 5,
     gamma1: 1 << 19,
@@ -131,7 +128,6 @@ export const DILITHIUM_LEVEL3_P: DilithiumParameterSpec = {
 };
 
 export const DILITHIUM_LEVEL5_P: DilithiumParameterSpec = {
-    name: "Dilithium Level 5",
     k: 8,
     l: 7,
     gamma1: 1 << 19,

@@ -54,10 +54,14 @@ export class DilithiumPrivateKey implements DilithiumPrivateKeyParams {
     /**
      * Parses a private key from a byte array
      * @param bytes The byte array
-     * @param level The level specification
+     * @param level The security level
      * @returns The private key
      */
     public static fromBytes(bytes: Uint8Array, level: DilithiumLevel): DilithiumPrivateKey {
+        if (level.spec.privateKeyLength !== bytes.length) {
+            throw new Error(`Invalid private key size. Expected ${level.spec.publicKeyLength} bytes, but found ${bytes.length} bytes`);
+        }
+
         const parameterSpec = level.spec.rawParams;
         const POLYETA_PACKEDBYTES = getPolyEtaPackedBytes(parameterSpec.eta);
 
@@ -122,7 +126,7 @@ export class DilithiumPrivateKey implements DilithiumPrivateKeyParams {
     /**
      * Parses private key from hex string
      * @param hex The string
-     * @param level The level specification 
+     * @param level The security level
      * @returns The private key
      */
     public static fromHex(hex: string, level: DilithiumLevel): DilithiumPrivateKey {
@@ -132,7 +136,7 @@ export class DilithiumPrivateKey implements DilithiumPrivateKeyParams {
     /**
      * Parses private key from base 64 string
      * @param base64 The string
-     * @param level The level specification 
+     * @param level The security level
      * @returns The private key
      */
     public static fromBase64(base64: string, level: DilithiumLevel): DilithiumPrivateKey {
@@ -235,6 +239,10 @@ export class DilithiumPublicKey {
      * @returns The public key
      */
     public static fromBytes(bytes: Uint8Array, level: DilithiumLevel) {
+        if (level.spec.publicKeyLength !== bytes.length) {
+            throw new Error(`Invalid public key size. Expected ${level.spec.publicKeyLength} bytes, but found ${bytes.length} bytes`);
+        }
+
         const parameterSpec = level.spec.rawParams;
         let off = 0;
         const rho = new Uint8Array(SEEDBYTES);
@@ -257,7 +265,7 @@ export class DilithiumPublicKey {
     /**
      * Parses public key from hex string
      * @param hex The string
-     * @param level The level specification 
+     * @param level The security level
      * @returns The public key
      */
     public static fromHex(hex: string, level: DilithiumLevel): DilithiumPublicKey {
@@ -267,7 +275,7 @@ export class DilithiumPublicKey {
     /**
      * Parses public key from base 64 string
      * @param base64 The string
-     * @param level The level specification 
+     * @param level The security level
      * @returns The public key
      */
     public static fromBase64(base64: string, level: DilithiumLevel): DilithiumPublicKey {
@@ -343,7 +351,7 @@ export class DilithiumKeyPair {
 
     /**
      * Generates a random keypair
-     * @param level The algorithm level
+     * @param level The security level
      * @param seed The seed for the generation of the key pair (if not prodiced, a random seed is generated)
      */
     public static generate(level: DilithiumLevel, seed?: Uint8Array) {

@@ -110,6 +110,9 @@ export class DilithiumSignature {
      * @returns The signature
      */
     public static fromBytes(bytes: Uint8Array, level: DilithiumLevel): DilithiumSignature {
+        if (level.spec.signatureLength !== bytes.length) {
+            throw new Error(`Invalid signature size. Expected ${level.spec.publicKeyLength} bytes, but found ${bytes.length} bytes`);
+        }
         return new DilithiumSignature(level.spec.rawParams, bytes);
     }
 
