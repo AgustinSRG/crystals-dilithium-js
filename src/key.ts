@@ -118,6 +118,26 @@ export class DilithiumPrivateKey implements DilithiumPrivateKeyParams {
         });
     }
 
+    /**
+     * Parses private key from hex string
+     * @param hex The string
+     * @param level The level specification 
+     * @returns The private key
+     */
+    public static fromHex(hex: string, level: DilithiumLevel): DilithiumPrivateKey {
+        return DilithiumPrivateKey.fromBytes(new Uint8Array(Buffer.from(hex, "hex")), level);
+    }
+
+    /**
+     * Parses private key from base 64 string
+     * @param base64 The string
+     * @param level The level specification 
+     * @returns The private key
+     */
+    public static fromBase64(base64: string, level: DilithiumLevel): DilithiumPrivateKey {
+        return DilithiumPrivateKey.fromBytes(new Uint8Array(Buffer.from(base64, "base64")), level);
+    }
+
     constructor(spec: DilithiumParameterSpec, bytes: Uint8Array, params: DilithiumPrivateKeyParams) {
         this.spec = spec;
         this.bytes = bytes;
@@ -163,6 +183,27 @@ export class DilithiumPrivateKey implements DilithiumPrivateKeyParams {
     public toKeyPair(): DilithiumKeyPair {
         return new DilithiumKeyPair(this);
     }
+
+    /**
+     * @returns The private key as a byte array 
+     */
+    public getBytes(): Uint8Array {
+        return this.bytes;
+    }
+
+    /**
+     * @returns The private key as a hex string
+     */
+    public toHex(): string {
+        return Buffer.from(this.bytes).toString("hex");
+    }
+
+    /**
+     * @returns The private key as a base 64 string
+     */
+    public toBase64(): string {
+        return Buffer.from(this.bytes).toString("base64");
+    }
 }
 
 /**
@@ -203,6 +244,26 @@ export class DilithiumPublicKey {
         return new DilithiumPublicKey(parameterSpec, bytes, rho, p, A);
     }
 
+    /**
+     * Parses public key from hex string
+     * @param hex The string
+     * @param level The level specification 
+     * @returns The public key
+     */
+    public static fromHex(hex: string, level: DilithiumLevel): DilithiumPublicKey {
+        return DilithiumPublicKey.fromBytes(new Uint8Array(Buffer.from(hex, "hex")), level);
+    }
+
+    /**
+     * Parses public key from base 64 string
+     * @param base64 The string
+     * @param level The level specification 
+     * @returns The public key
+     */
+    public static fromBase64(base64: string, level: DilithiumLevel): DilithiumPublicKey {
+        return DilithiumPublicKey.fromBytes(new Uint8Array(Buffer.from(base64, "base64")), level);
+    }
+
     constructor(spec: DilithiumParameterSpec, bytes: Uint8Array, rho: Uint8Array, t1: PolynomiumVector, A: PolynomiumVector[]) {
         this.spec = spec;
         this.bytes = bytes;
@@ -210,6 +271,20 @@ export class DilithiumPublicKey {
         this.rho = rho;
         this.t1 = t1;
         this.A = A;
+    }
+
+    /**
+     * @returns The public key as a hex string
+     */
+    public toHex(): string {
+        return Buffer.from(this.bytes).toString("hex");
+    }
+
+    /**
+     * @returns The public key as a base 64 string
+     */
+    public toBase64(): string {
+        return Buffer.from(this.bytes).toString("base64");
     }
 }
 
@@ -278,10 +353,10 @@ export class DilithiumKeyPair {
         const tr = crh(pubbytes);
 
         const prvbytes = packPrvKey(spec.eta, rho, tr, K, res[0], s1, s2);
-		
+
         const s2Hat = s2.ntt();
         const t0Hat = res[0].ntt();
-        
+
         const privateKey = new DilithiumPrivateKey(spec, prvbytes, {
             rho,
             K,
