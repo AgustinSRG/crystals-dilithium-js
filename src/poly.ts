@@ -158,15 +158,13 @@ export class Polynomium {
         const buf = Buffer.alloc(SHAKE256_RATE);
         s.digest({ buffer: buf, format: "binary" });
 
-        const signs = new Uint8Array(8);
+        let signs = BigInt(0);
 
         for (let i = 0; i < 8; i++) {
-            signs[7 - i] = (buf[i] & 0xFF);
+            signs |= BigInt(buf[i] & 0xFF) << BigInt(8 * i);
         }
 
         let pos = 8;
-        let signsByte = 7;
-        let signsBit = 7;
 
         let b: number;
 
@@ -187,16 +185,10 @@ export class Polynomium {
                 b = (buf[pos++] & 0xFF);
             }
 
-            const bit = (signs[signsByte] >> (7 - signsBit)) & 1;
-
             pre.coef[i] = pre.coef[b];
-            pre.coef[b] = (1 - 2 * bit);
+            pre.coef[b] = (1 - 2 * Number(signs & BigInt(1)));
 
-            signsBit--;
-            if (signsBit < 0) {
-                signsBit = 7;
-                signsByte--;
-            }
+            signs = signs >> BigInt(1);
         }
 
         return pre;
@@ -404,11 +396,11 @@ export class Polynomium {
         return ctr;
     }
 
-    private static montgomery_reduce(a: number): number {
-        let t: number;
-        t = (a * QINV);
-        t = (((a - t * Q) >> 32) & 0xFFFFFFFF);
-        return t;
+    private static montgomery_reduce(a: bigint): number {
+        let t: bigint;
+        t = (a * BigInt(QINV));
+        t = (((a - t * BigInt(Q)) >> BigInt(32)) & BigInt(0xFFFFFFFF));
+        return Number(t);
     }
 
     public coef: number[];
@@ -454,7 +446,7 @@ export class Polynomium {
             for (let start = 0; start < N; start = j + len) {
                 const zeta = zetas[++k];
                 for (j = start; j < start + len; ++j) {
-                    const t = Polynomium.montgomery_reduce(zeta * ret.coef[j + len]);
+                    const t = Polynomium.montgomery_reduce(BigInt(zeta) * BigInt(ret.coef[j + len]));
                     ret.coef[j + len] = (ret.coef[j] - t) | 0;
                     ret.coef[j] = (ret.coef[j] + t) | 0;
                 }
@@ -467,7 +459,7 @@ export class Polynomium {
     public pointwiseMontgomery(other: Polynomium): Polynomium {
         const c = new Polynomium(this.coef.length);
         for (let i = 0; i < this.coef.length; i++) {
-            c.coef[i] = Polynomium.montgomery_reduce(this.coef[i] * other.coef[i]);
+            c.coef[i] = Polynomium.montgomery_reduce(BigInt(this.coef[i]) * BigInt(other.coef[i]));
         }
         return c;
     }
@@ -496,13 +488,13 @@ export class Polynomium {
                     const t = this.coef[j];
                     this.coef[j] = (t + this.coef[j + len]) | 0;
                     this.coef[j + len] = (t - this.coef[j + len]) | 0;
-                    this.coef[j + len] = Polynomium.montgomery_reduce(zeta * this.coef[j + len]);
+                    this.coef[j + len] = Polynomium.montgomery_reduce(BigInt(zeta) * BigInt(this.coef[j + len]));
                 }
             }
         }
 
         for (j = 0; j < N; ++j) {
-            this.coef[j] = Polynomium.montgomery_reduce(f * this.coef[j]);
+            this.coef[j] = Polynomium.montgomery_reduce(BigInt(f) * BigInt(this.coef[j]));
         }
     }
 
@@ -675,40 +667,40 @@ export class Polynomium {
     }
 
     public zpack(gamma1: number, sign: Uint8Array, off: number) {
-        const t = [0, 0, 0, 0];
+        const t: bigint[] = [BigInt(0), BigInt(0), BigInt(0), BigInt(0)];
 
         if (gamma1 === (1 << 17)) {
             for (let i = 0; i < N / 4; i++) {
-                t[0] = (gamma1 - this.coef[4 * i + 0]) & 0xFFFFFFFF;
-                t[1] = (gamma1 - this.coef[4 * i + 1]) & 0xFFFFFFFF;
-                t[2] = (gamma1 - this.coef[4 * i + 2]) & 0xFFFFFFFF;
-                t[3] = (gamma1 - this.coef[4 * i + 3]) & 0xFFFFFFFF;
+                t[0] = ((BigInt(gamma1) - BigInt(this.coef[4 * i + 0]))) & BigInt(0xFFFFFFFF);
+                t[1] = ((BigInt(gamma1) - BigInt(this.coef[4 * i + 1]))) & BigInt(0xFFFFFFFF);
+                t[2] = (BigInt(gamma1) - BigInt(this.coef[4 * i + 2])) & BigInt(0xFFFFFFFF);
+                t[3] = (BigInt(gamma1) - BigInt(this.coef[4 * i + 3])) & BigInt(0xFFFFFFFF);
 
-                sign[off + 9 * i + 0] = t[0] & 0xFF;
-                sign[off + 9 * i + 1] = (t[0] >> 8) & 0xFF;
-                sign[off + 9 * i + 2] = (t[0] >> 16) & 0xFF;
-                sign[off + 9 * i + 2] |= (t[1] << 2) & 0xFF;
-                sign[off + 9 * i + 3] = (t[1] >> 6) & 0xFF;
-                sign[off + 9 * i + 4] = (t[1] >> 14) & 0xFF;
-                sign[off + 9 * i + 4] |= (t[2] << 4) & 0xFF;
-                sign[off + 9 * i + 5] = (t[2] >> 4) & 0xFF;
-                sign[off + 9 * i + 6] = (t[2] >> 12) & 0xFF;
-                sign[off + 9 * i + 6] |= (t[3] << 6) & 0xFF;
-                sign[off + 9 * i + 7] = (t[3] >> 2) & 0xFF;
-                sign[off + 9 * i + 8] = (t[3] >> 10) & 0xFF;
+                sign[off + 9 * i + 0] = Number(t[0] & BigInt(0xFF));
+                sign[off + 9 * i + 1] = Number((t[0] >> BigInt(8)) & BigInt(0xFF));
+                sign[off + 9 * i + 2] = Number((t[0] >> BigInt(16)) & BigInt(0xFF));
+                sign[off + 9 * i + 2] |= Number((t[1] << BigInt(2)) & BigInt(0xFF));
+                sign[off + 9 * i + 3] = Number((t[1] >> BigInt(6)) & BigInt(0xFF));
+                sign[off + 9 * i + 4] = Number((t[1] >> BigInt(14)) & BigInt(0xFF));
+                sign[off + 9 * i + 4] |= Number((t[2] << BigInt(4)) & BigInt(0xFF));
+                sign[off + 9 * i + 5] = Number((t[2] >> BigInt(4)) & BigInt(0xFF));
+                sign[off + 9 * i + 6] = Number((t[2] >> BigInt(12)) & BigInt(0xFF));
+                sign[off + 9 * i + 6] |= Number((t[3] << BigInt(6)) & BigInt(0xFF));
+                sign[off + 9 * i + 7] = Number((t[3] >> BigInt(2)) & BigInt(0xFF));
+                sign[off + 9 * i + 8] = Number((t[3] >> BigInt(10)) & BigInt(0xFF));
             }
 
         } else if (gamma1 === (1 << 19)) {
             for (let i = 0; i < N / 2; i++) {
-                t[0] = gamma1 - this.coef[2 * i + 0];
-                t[1] = gamma1 - this.coef[2 * i + 1];
+                t[0] = BigInt(gamma1) - BigInt(this.coef[2 * i + 0]);
+                t[1] = BigInt(gamma1) - BigInt(this.coef[2 * i + 1]);
 
-                sign[off + 5 * i + 0] = (t[0]) & 0xFF;
-                sign[off + 5 * i + 1] = (t[0] >> 8) & 0xFF;
-                sign[off + 5 * i + 2] = (t[0] >> 16) & 0xFF;
-                sign[off + 5 * i + 2] |= (t[1] << 4) & 0xFF;
-                sign[off + 5 * i + 3] = (t[1] >> 4) & 0xFF;
-                sign[off + 5 * i + 4] = (t[1] >> 12) & 0xFF;
+                sign[off + 5 * i + 0] = Number((t[0]) & BigInt(0xFF));
+                sign[off + 5 * i + 1] = Number((t[0] >> BigInt(8)) & BigInt(0xFF));
+                sign[off + 5 * i + 2] = Number((t[0] >> BigInt(16)) & BigInt(0xFF));
+                sign[off + 5 * i + 2] |= Number((t[1] << BigInt(4)) & BigInt(0xFF));
+                sign[off + 5 * i + 3] = Number((t[1] >> BigInt(4)) & BigInt(0xFF));
+                sign[off + 5 * i + 4] = Number((t[1] >> BigInt(12)) & BigInt(0xFF));
             }
 
         } else {
