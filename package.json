@@ -12,7 +12,7 @@
   "scripts": {
     "prebuild": "npm run lint",
     "compile": "tsc --pretty --declaration && webpack",
-    "build": "rimraf dist && npm run compile && npm run gendoc",
+    "build": "rimraf dist && npm run compile",
     "lint": "eslint --fix src/**/*.ts",
     "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.ts'",
     "gendoc": "typedoc --out docs ./src"
