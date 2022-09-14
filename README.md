@@ -4,7 +4,7 @@
 
 Javascript implementation of post-quantum signature algorithm: [CRYSTALS-Dilithium](https://pq-crystals.org/dilithium).
 
-Note: This is an experimental implemantation. I do not recommend using it in production until the algorithm is standarized.
+Note: This is an experimental implementation. I do not recommend using it in production until the algorithm is standarized.
 
 ## Installation
 
