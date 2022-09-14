@@ -1,6 +1,6 @@
 {
   "name": "@asanrom/dilithium",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Implementation of post-quantum signature algorithm: CRYSTALS-Dilithium.",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
