@@ -561,7 +561,7 @@ export class Polynomium {
     }
 
     public t0pack(buf: Uint8Array, off: number) {
-        const t = new Uint8Array(8);
+        const t = [0, 0, 0, 0, 0, 0, 0, 0]
 
         for (let i = 0; i < N / 8; i++) {
             t[0] = (1 << (D - 1)) - this.coef[8 * i + 0];
