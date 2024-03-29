@@ -15,7 +15,7 @@
     "build": "rimraf dist && npm run compile",
     "lint": "eslint --fix src/**/*.ts",
     "test": "env TS_NODE_COMPILER_OPTIONS='{\"module\": \"commonjs\" }' mocha -r ts-node/register 'tests/**/*.ts'",
-    "gendoc": "typedoc --out docs ./src"
+    "gendoc": "typedoc --out docs ./src && cp tests/test.html docs/test.html && cp dist.webpack/dilithium.js docs/dilithium.js"
   },
   "files": [
     "dist/"
