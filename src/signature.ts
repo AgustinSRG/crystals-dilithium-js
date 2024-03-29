@@ -149,6 +149,20 @@ export class DilithiumSignature {
     }
 
     /**
+     * @returns The signature as a hex string
+     */
+    public toHex(): string {
+        return Buffer.from(this.bytes).toString("hex");
+    }
+
+    /**
+     * @returns The signature as a base 64 string
+     */
+    public toBase64(): string {
+        return Buffer.from(this.bytes).toString("base64");
+    }
+
+    /**
      * Verifies the signature against a message + public key
      * @param message The message
      * @param publicKey The public key

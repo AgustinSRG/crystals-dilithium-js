@@ -94,7 +94,6 @@ export class DilithiumPrivateKey implements DilithiumPrivateKeyParams {
         for (let i = 0; i < parameterSpec.k; i++) {
             s2.polynomiums[i] = Polynomium.etaunpack(parameterSpec.eta, bytes, off);
             off += POLYETA_PACKEDBYTES;
-
         }
 
         const t0 = new PolynomiumVector(parameterSpec.k);
@@ -376,6 +375,7 @@ export class DilithiumKeyPair {
 
         const s1Hat = s1.ntt();
         let t1 = s1Hat.mulMatrixPointwiseMontgomery(A);
+
         t1.reduce();
         t1.invnttTomont();
 
@@ -383,6 +383,7 @@ export class DilithiumKeyPair {
         t1.caddq();
 
         const res = t1.powerRound();
+
         const pubbytes = packPubKey(rho, res[1]);
 
         const tr = crh(pubbytes);
