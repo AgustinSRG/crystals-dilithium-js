@@ -49,3 +49,4 @@ const valid = publicKey.verifySignature(message, signature);
 ## Documentation
 
  - [Library documentation (Auto-generated)](https://agustinsrg.github.io/crystals-dilithium-js/)
+ - [Test in the browser](https://agustinsrg.github.io/crystals-dilithium-js/test.html)
