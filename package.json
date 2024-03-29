@@ -50,6 +50,7 @@
   },
   "license": "Apache-2.0",
   "dependencies": {
+    "buffer": "6.0.3",
     "long": "5.2.1",
     "randombytes": "2.1.0",
     "sha3": "2.1.4"

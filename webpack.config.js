@@ -1,4 +1,6 @@
 const path = require('path');
+const webpack = require('webpack');
+
 module.exports = {
     mode: "production",
     entry: "./src/index.ts",
@@ -11,9 +13,15 @@ module.exports = {
         extensions: [".webpack.js", ".web.js", ".ts", ".js"],
         fallback: {
             "crypto": false,
+            buffer: require.resolve('buffer/'),
         },
     },
     module: {
         rules: [{ test: /\.ts$/, loader: "ts-loader" }]
-    }
+    },
+    plugins: [
+        new webpack.ProvidePlugin({
+            Buffer: ['buffer', 'Buffer'],
+        }),
+    ],
 }
