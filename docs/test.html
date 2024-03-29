@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crystals-Dilithium test for the browser</title>
+    <script type="application/javascript" src="./dilithium.js"></script>
+    <script type="application/javascript">
+        for (let key of Object.keys(DilithiumAlgorithm)) {
+            window[key] = DilithiumAlgorithm[key];
+        }
+
+        function generateKeyPair() {
+            const level = DilithiumLevel.get(Number(document.getElementById('gen-level').value));
+
+            document.getElementById('sign-level').value = document.getElementById('gen-level').value;
+            document.getElementById('validate-level').value = document.getElementById('gen-level').value;
+
+            const keyPair = DilithiumKeyPair.generate(level);
+
+            const privateKey = keyPair.getPrivateKey();
+
+            document.getElementById('gen-priv-key').value = privateKey.toHex();
+            document.getElementById('sign-priv-key').value = privateKey.toHex();
+
+            const publicKey = keyPair.getPublicKey();
+
+            document.getElementById('gen-pub-key').value = publicKey.toHex();
+            document.getElementById('validate-pub-key').value = publicKey.toHex();
+        }
+
+        function sign() {
+            const level = DilithiumLevel.get(Number(document.getElementById('sign-level').value));
+
+            document.getElementById('validate-level').value = document.getElementById('sign-level').value;
+
+            let privateKey;
+
+            try {
+                privateKey = DilithiumPrivateKey.fromHex(document.getElementById('sign-priv-key').value, level);
+            } catch (ex) {
+                alert("Invalid private key provided: " + ex.message);
+                console.error(ex);
+                return;
+            }
+
+            const message = new TextEncoder().encode(document.getElementById('sign-message').value);
+
+            const signature = privateKey.sign(message);
+
+            document.getElementById('validate-message').value = document.getElementById('sign-message').value;
+
+            document.getElementById('sign-signature').value = signature.toHex();
+            document.getElementById('validate-signature').value = signature.toHex();
+        }
+
+        function validateSignature() {
+            const level = DilithiumLevel.get(Number(document.getElementById('validate-level').value));
+            const message = new TextEncoder().encode(document.getElementById('validate-message').value);
+
+            let publicKey;
+
+            try {
+                publicKey = DilithiumPublicKey.fromHex(document.getElementById('validate-pub-key').value, level)
+            } catch (ex) {
+                alert("Invalid public key provided: " + ex.message);
+                console.error(ex);
+                return;
+            }
+
+            let signature;
+
+            try {
+                signature = DilithiumSignature.fromHex(document.getElementById('validate-signature').value, level)
+            } catch (ex) {
+                alert("Invalid signature provided: " + ex.message);
+                console.error(ex);
+                return;
+            }
+
+            let valid;
+
+            try {
+                valid = publicKey.verifySignature(message, signature);
+            } catch (ex) {
+                alert("Error: " + ex.message);
+                console.error(ex);
+                return;
+            }
+
+            if (valid) {
+                document.getElementById('validate-result').value = "VALID";
+            } else {
+                document.getElementById('validate-result').value = "INVALID";
+            }
+        }
+    </script>
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+        }
+
+        .form-group {
+            padding-bottom: 0.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            padding-bottom: 0.25rem;
+        }
+
+        textarea {
+            min-height: 100px;
+            min-width: 480px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Crystals-Dilithium test for the browser</h1>
+    <section>
+        <h2>Generate key pair</h2>
+        <div class="form-group">
+            <label>Level:</label>
+            <select id="gen-level">
+                <option value="2">Level 2</option>
+                <option value="3" selected>Level 3</option>
+                <option value="5">Level 5</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <button onclick="generateKeyPair()">Generate</button>
+        </div>
+        <div class="form-group">
+            <label>Private key:</label>
+            <textarea id="gen-priv-key" readonly></textarea>
+        </div>
+        <div class="form-group">
+            <label>Public key:</label>
+            <textarea id="gen-pub-key" readonly></textarea>
+        </div>
+    </section>
+    <hr>
+    <section>
+        <h2>Sign</h2>
+        <div class="form-group">
+            <label>Level:</label>
+            <select id="sign-level">
+                <option value="2">Level 2</option>
+                <option value="3" selected>Level 3</option>
+                <option value="5">Level 5</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Private key:</label>
+            <textarea id="sign-priv-key"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Message to sign:</label>
+            <textarea id="sign-message">Joy!</textarea>
+        </div>
+        <div class="form-group">
+            <button onclick="sign()">Sign</button>
+        </div>
+        <div class="form-group">
+            <label>Signature:</label>
+            <textarea id="sign-signature" readonly></textarea>
+        </div>
+    </section>
+    <hr>
+    <section>
+        <h2>Validate</h2>
+        <div class="form-group">
+            <label>Level:</label>
+            <select id="validate-level">
+                <option value="2">Level 2</option>
+                <option value="3" selected>Level 3</option>
+                <option value="5">Level 5</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>Public key:</label>
+            <textarea id="validate-pub-key"></textarea>
+        </div>
+        <div class="form-group">
+            <label>Message:</label>
+            <textarea id="validate-message">Joy!</textarea>
+        </div>
+        <div class="form-group">
+            <label>Signature:</label>
+            <textarea id="validate-signature"></textarea>
+        </div>
+        <div class="form-group">
+            <button onclick="validateSignature()">Validate</button>
+        </div>
+        <div class="form-group">
+            <label>Validation result:</label>
+            <input type="text" id="validate-result" readonly>
+        </div>
+    </section>
+</body>
+
+</html>
